@@ -95,11 +95,14 @@ class ConnectionPDO extends PDO {
 
       $this->stmt = $this->prepare($this->lastSQL);
 
-      $this->driver->setParams($this->stmt);
-
       $this->log .= $this->driver->flushLog();
 
       return $this->stmt;
+   }
+
+   public function getTables() {
+      $query = $this->query('SHOW TABLES');
+      return $query->fetchAll(PDO::FETCH_COLUMN);
    }
 
    public function lastSQL(){
@@ -119,7 +122,7 @@ class ConnectionPDO extends PDO {
    }
 
    public function flushLog(){
-      $log = $this->log;
+      $log = rtrim($this->log, '-'.PHP_EOL);
       $this->log = '';
       return $log;
    }

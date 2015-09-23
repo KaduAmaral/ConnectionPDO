@@ -11,7 +11,7 @@ function __autoload($class){
    $dir = __DIR__.DIRECTORY_SEPARATOR;
    $ext = '.php';
    if (file_exists($dir.$class.$ext)) require_once $dir.$class.$ext;
-   else exit('Coul\'d open '.$class.'!');
+   else exit('Couldn\'t open class '.$class.'!');
 }
 
 
@@ -40,11 +40,18 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
             margin: 0;
             padding: 0;
             background-color: #3477B9;
+            font-family: Verdana, Arial, sans-serif;
          }
          #main {
             display: block;
             margin: 0 auto;
-            width: 620px;
+            padding-bottom: 50px;
+            width: 860px;
+         }
+         h1{
+            color:#F5F5F5;
+            text-align: center;
+            text-shadow: 2px 2px 5px rgba(0,0,0,.6);
          }
          label {
             display: block;
@@ -52,7 +59,6 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
             margin: 50px auto 0;
             background-color: #F0F0F0;
             color: #06C;
-            font-family: Verdana, Arial, sans-serif;
             font-size: 24px;
             box-shadow: 2px 3px 7px rgba(0,0,0,0.7);
          }
@@ -86,11 +92,15 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
    </head>
    <body>
       <div id="main">
+
+         <h1>ConnectionPDO</h1>
+
          <label>Drop</label>
          <?php 
-            $con->drop('tab_teste')
+            $r = $con->drop('tab_teste');
          ?>
-         <pre><?=$con->lastSQL()?></pre>
+         <pre><?=$con->flushLog()?></pre>
+         <pre><?=($r ? 'Success' : 'Fail')?></pre>
 
          <?php
 
@@ -116,41 +126,70 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
          ?>
          <label>Create</label>
          <?php
-            $con->query(
-               "CREATE TABLE `tab_teste` (
-                  id INT(4) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                  name VARCHAR(60),
-                  col3 VARCHAR(60) DEFAULT NULL
-               );"
-            );
+            $sql =  'CREATE TABLE `tab_teste` (' . PHP_EOL .
+                     '   id INT(4) NOT NULL AUTO_INCREMENT PRIMARY KEY,' . PHP_EOL .
+                     '   name VARCHAR(60),' . PHP_EOL .
+                     '   col3 VARCHAR(60) DEFAULT NULL' . PHP_EOL .
+                     ');';
+            $r = $con->query($sql);
          ?>
-         <pre>Not Implemented<!--?=$con->Create('tab_teste',$fields,'id','InnoDB',false)?--></pre>
+         <!--?=$con->Create('tab_teste',$fields,'id','InnoDB',false)?-->
+         <pre>Not Implemented - Created manually</pre>
+         <pre><?=$sql?></pre>
+         <pre><?=($r ? 'Success' : 'Fail')?></pre>
 
          <label>Insert</label>
             <?php
-               $sql = '';
-               $con->insert('tab_teste',Array('id'=>1,'name' => 'First Record', 'col3' => 'test '))->execute();
-               $sql .= $con->lastSQL() . PHP_EOL;
-               $con->insert('tab_teste',Array('id'=>2,'name' => 'Second Record', 'col3' => 'test '))->execute();
-               $sql .= $con->lastSQL() . PHP_EOL;
-               $con->insert('tab_teste',Array('id'=>3,'name' => 'Third Record', 'col3' => 'test '))->execute();
-               $sql .= $con->lastSQL() . PHP_EOL;
-               $con->insert('tab_teste',Array('name' => 'Quarto', 'col3' => '4 '))->execute();
-               $sql .= $con->lastSQL() . PHP_EOL;
-               $con->insert('tab_teste',Array('name' => 'Quinto', 'col3' => '5 '))->execute();
-               $sql .= $con->lastSQL() . PHP_EOL;
-               $con->insert('tab_teste',Array('name' => 'Sexto', 'col3' => '6 '))->execute();
-               $sql .= $con->lastSQL() . PHP_EOL;
-            ?>
-         <pre><?=$sql?></pre>
+               $log = '';
 
+
+               echo '<pre>';
+               var_dump( $con->getTables() );
+               echo '</pre>';
+
+               $r = $con->insert('tab_teste',Array('id'=>1,'name' => 'First Record', 'col3' => 'test '))->execute();
+               $log .= ($r ? 'Success' : 'Fail') . PHP_EOL;
+
+               echo '<pre>';
+               echo $con->lastSQL() . PHP_EOL;
+               echo '</pre>';
+
+               echo '<pre>';
+               var_dump( $con->getTables() );
+               echo '</pre>';
+
+
+
+               $r = $con->insert('tab_teste',Array('id'=>2,'name' => 'Second Record', 'col3' => 'test '))->execute();
+               $log .= ($r ? 'Success' : 'Fail') . PHP_EOL;
+
+               $r = $con->insert('tab_teste',Array('id'=>3,'name' => 'Third Record', 'col3' => 'test '))->execute();
+               $log .= ($r ? 'Success' : 'Fail') . PHP_EOL;
+
+               $r = $con->insert('tab_teste',Array('name' => 'Quarto', 'col3' => '4 '))->execute();
+               $log .= ($r ? 'Success' : 'Fail') . PHP_EOL;
+
+               $r = $con->insert('tab_teste',Array('name' => 'Quinto', 'col3' => '5 '))->execute();
+               $log .= ($r ? 'Success' : 'Fail') . PHP_EOL;
+
+               $r = $con->insert('tab_teste',Array('name' => 'Sexto', 'col3' => '6 '))->execute();
+               $log .= ($r ? 'Success' : 'Fail') . PHP_EOL;
+
+            ?>
+         <pre><?=$con->flushLog() . PHP_EOL . PHP_EOL . $log?></pre>
+
+         <label>Tabelas</label>
+         <pre><?php var_dump( $con->getTables() );?></pre>
+
+         <?php //$r = $con->delete('tab_teste', Array('id'=>1)); ?>
          <label>Delete</label>
-         <?php $con->delete('tab_teste', Array('id'=>1)); ?>
-         <pre><?=$con->lastSQL()?></pre>
+         <pre><?=$con->flushLog()?></pre>
+         <pre><?=($r ? 'Success' : 'Fail')?></pre>
 
          <label>Update</label>
-         <?php $con->Update('tab_teste',Array('name' => 'Now this is the first record', 'col3' => 'First record '), Array('id'=>2)); ?>
-         <pre><?=$con->lastSQL()?></pre>
+         <?php $r = $con->update('tab_teste',Array('name' => 'Now this is the first record', 'col3' => 'First record '), Array('id'=>2)); ?>
+         <pre><?=$con->flushLog()?></pre>
+         <pre><?=($r ? 'Success' : 'Fail')?></pre>
 
          <label>Select</label>
          <?php
@@ -159,35 +198,45 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
                'OR',
                'col3' => array('LIKE' => 'recor')
             );
-            $con->flushLog();
+
+            $where = Array(
+               'col3' => array('LIKE' => 'recor')
+            );
+
             $res = $con->select('tab_teste', $where)->execute();
-            echo '<pre>' . $con->flushLog() . '</pre>';
-            $tab = $res->fetch_all(MYSQLI_ASSOC);
-            if (is_array($tab)){
-               $_cols = Array();
-               foreach ($tab as $key => $row) {
-                  foreach ($row as $col => $val) {
-                     if (count($_cols) != count($row)) $_cols[] = $col;
-                     else break;
+            echo '<pre>' . $con->flushLog() . PHP_EOL;
+            var_dump($res);
+            echo '</pre>';
+
+            if ($res){
+               $tab = $res->fetchAll(PDO::FETCH_ASSOC);
+               if (is_array($tab)){
+                  $_cols = Array();
+                  foreach ($tab as $key => $row) {
+                     foreach ($row as $col => $val) {
+                        if (count($_cols) != count($row)) $_cols[] = $col;
+                        else break;
+                     }
+                     break;
                   }
-                  break;
-               }
-               echo '<pre><table cellpadding="0" cellspacing="0" border="1"><thead><tr>';
-               foreach ($_cols as $colun) {
-                  echo "<th>{$colun}</th>";
-               }
-               echo '</tr></thead><tbody>';
-               foreach ($tab as $key => $row) {
-                  echo '<tr>';
-                  foreach ($row as $col => $val) {
-                     echo "<td>{$val}</td>";
+                  echo '<pre><table cellpadding="0" cellspacing="0" border="1"><thead><tr>';
+                  foreach ($_cols as $colun) {
+                     echo "<th>{$colun}</th>";
                   }
-                  echo '</tr>';
+                  echo '</tr></thead><tbody>';
+                  foreach ($tab as $key => $row) {
+                     echo '<tr>';
+                     foreach ($row as $col => $val) {
+                        echo "<td>{$val}</td>";
+                     }
+                     echo '</tr>';
+                  }
+                  echo '</tbody></table></pre>';
+               } else {
+                  echo '<pre>'.$con->_lastSql.'</pre>';
                }
-               echo '</tbody></table></pre>';
-            } else {
-               echo '<pre>'.$con->_lastSql.'</pre>';
             }
+
          ?>
       </div>
    </body>

@@ -37,7 +37,7 @@ class SQLDriver implements DriverInterface {
 
       foreach ($data as $col => $value) {
          $colunms[] = "`{$col}`";
-         $values[]  = "?";
+         $values[]  = '?';
 
          $this->addParam($col, $value);
       }
@@ -166,6 +166,7 @@ class SQLDriver implements DriverInterface {
             $this->log .=  $param+1 . ' => ' . $this->prepareParam($value) . PHP_EOL;
          }
       }
+      $this->log .= PHP_EOL.'-----------------------------'.PHP_EOL.PHP_EOL;
    }
 
    private function prepareParam($value){
