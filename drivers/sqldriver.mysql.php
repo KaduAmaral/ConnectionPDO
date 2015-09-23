@@ -7,6 +7,7 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'driverinterface.php';
 class SQLDriver implements DriverInterface {
 
    private $params;
+   private $log = '';
 
    public function select($table, $where = NULL, $cols = '*', $limit = NULL){
 
@@ -16,9 +17,11 @@ class SQLDriver implements DriverInterface {
 
       $_limit = (!is_null($limit) ? 'LIMIT '.$limit : '' );
 
-      $_sql = "SELECT {$cols} FROM `{$table}`{$_where}{$_limit};";
+      $sql = "SELECT {$cols} FROM `{$table}`{$_where}{$_limit};";
 
-      return $_sql;
+      $this->log .= $sql . PHP_EOL;
+
+      return $sql;
    }
 
 
@@ -40,6 +43,8 @@ class SQLDriver implements DriverInterface {
       }
 
       $sql .= '(' . implode(', ', $colunms) . ') VALUES (' . implode(', ', $values) . ');';
+
+      $this->log .= $sql . PHP_EOL;
 
       return $sql;
    }
@@ -63,7 +68,11 @@ class SQLDriver implements DriverInterface {
       if (!is_null($where))
          $sql .= $this->where($where);
 
-      return $sql . ';';
+      $sql = $sql . ';';
+
+      $this->log .= $sql . PHP_EOL;
+
+      return $sql;
 
    }
 
@@ -71,11 +80,19 @@ class SQLDriver implements DriverInterface {
 
       $this->clearParams();
 
-      return "DELETE FROM `{$table}`" . $this->where($where) . ';';
+      $sql = "DELETE FROM `{$table}`" . $this->where($where) . ';';
+
+      $this->log .= $sql . PHP_EOL;
+
+      return $sql;
    }
 
    public function drop($table){
-      return "DROP TABLE IF EXISTS `{$table}`;";
+      $sql = "DROP TABLE IF EXISTS `{$table}`;";
+
+      $this->log .= $sql . PHP_EOL;
+
+      return $sql;
    }
 
    public function create($table, $fields, $options = NULL){
@@ -131,17 +148,22 @@ class SQLDriver implements DriverInterface {
          $_sql = "CREATE TABLE IF NOT EXISTS `{$table}` (";
       }
       $_sql .= PHP_EOL.$_fields.PHP_EOL.") {$_enginne}{$_charset}{$_collate};";
-      if ($drop) $this->Drop($table); //("DROP TABLE IF EXISTS `{$table}`;\n");
-      return $this->ExecuteSQL($_sql);
+
+      if ($drop) 
+         $this->Drop($table);
+
+      $this->log .= $_sql . PHP_EOL;
+
+      return $_sql;
    }
 
    public function setParams(PDOStatement $stmt){
       $params = $this->getParams();
-      echo 'Setando Parâmetros: '.PHP_EOL;
+      $this->log .=  'Setando Parâmetros: '.PHP_EOL;
       if (is_array($params) && !empty($params)){
          foreach ($params as $param => $value){
             $stmt->bindValue($param+1, $this->prepareParam($value), $this->getParamType($value));
-            echo $param . ' => ' . $this->prepareParam($value) . PHP_EOL;
+            $this->log .=  $param+1 . ' => ' . $this->prepareParam($value) . PHP_EOL;
          }
       }
    }
@@ -268,6 +290,12 @@ class SQLDriver implements DriverInterface {
 
    public function clearParams(){
       $this->params = Array();
+   }
+
+   public function flushLog(){
+      $log = $this->log;
+      $this->log = '';
+      return $log;
    }
 
 

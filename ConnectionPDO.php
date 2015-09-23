@@ -8,6 +8,7 @@ class ConnectionPDO extends PDO {
    private $driver;
    private $stmt;
    private $lastSQL;
+   private $log = '';
 
    function __construct($dsn, $username = NULL, $password = NULL, $options = NULL) {
       parent::__construct($dsn, $username, $password, $options);
@@ -34,11 +35,13 @@ class ConnectionPDO extends PDO {
       //echo 'Parâmetros: ';
       //var_dump($this->driver->getParams());
 
+      $this->log .= $this->driver->flushLog();
+
       return $this->stmt;
    }
 
       /**
-    * @method  Select
+    * @method  insert
     * @param   $table - Nome da tabela
     * @param   $data - Array de dados (coluna => valor)
     * @return  Retorna PDOStatement em sucesso e FALSE quando erro
@@ -50,15 +53,26 @@ class ConnectionPDO extends PDO {
 
       $this->driver->setParams($this->stmt);
 
+      $this->log .= $this->driver->flushLog();
+
       return $this->stmt;
    }
 
+   /**
+    * @method  update
+    * @param   $table - Nome da tabela
+    * @param   $data  - Array de dados a serem atualizados (coluna => valor)
+    * @param   $where - Array com dados do WHERE (ver documentação para detalhes)
+    * @return  Retorna PDOStatement em sucesso e FALSE quando erro
+    */
    public function update($table, $data, $where = NULL) {
       $this->lastSQL = $this->driver->update($table, $data, $where);
 
       $this->stmt = $this->prepare($this->lastSQL);
 
       $this->driver->setParams($this->stmt);
+
+      $this->log .= $this->driver->flushLog();
 
       return $this->stmt;
    }
@@ -71,6 +85,8 @@ class ConnectionPDO extends PDO {
 
       $this->driver->setParams($this->stmt);
 
+      $this->log .= $this->driver->flushLog();
+
       return $this->stmt;
    }
 
@@ -80,6 +96,8 @@ class ConnectionPDO extends PDO {
       $this->stmt = $this->prepare($this->lastSQL);
 
       $this->driver->setParams($this->stmt);
+
+      $this->log .= $this->driver->flushLog();
 
       return $this->stmt;
    }
@@ -98,6 +116,12 @@ class ConnectionPDO extends PDO {
 
       require_once $driver;
       $this->driver = new SQLDriver();
+   }
+
+   public function flushLog(){
+      $log = $this->log;
+      $this->log = '';
+      return $log;
    }
 
 }
