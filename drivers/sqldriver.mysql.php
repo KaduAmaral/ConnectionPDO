@@ -19,7 +19,7 @@ class SQLDriver implements DriverInterface {
 
       $sql = "SELECT {$cols} FROM `{$table}`{$_where}{$_limit};";
 
-      $this->log .= $sql . PHP_EOL;
+      $this->log($sql);
 
       return $sql;
    }
@@ -44,7 +44,7 @@ class SQLDriver implements DriverInterface {
 
       $sql .= '(' . implode(', ', $colunms) . ') VALUES (' . implode(', ', $values) . ');';
 
-      $this->log .= $sql . PHP_EOL;
+      $this->log($sql);
 
       return $sql;
    }
@@ -70,7 +70,7 @@ class SQLDriver implements DriverInterface {
 
       $sql = $sql . ';';
 
-      $this->log .= $sql . PHP_EOL;
+      $this->log($sql);
 
       return $sql;
 
@@ -82,7 +82,7 @@ class SQLDriver implements DriverInterface {
 
       $sql = "DELETE FROM `{$table}`" . $this->where($where) . ';';
 
-      $this->log .= $sql . PHP_EOL;
+      $this->log($sql);
 
       return $sql;
    }
@@ -90,12 +90,19 @@ class SQLDriver implements DriverInterface {
    public function drop($table){
       $sql = "DROP TABLE `{$table}`;";
 
-      $this->log .= $sql . PHP_EOL;
+      $this->log($sql);
 
       return $sql;
    }
 
    public function create($table, $fields, $options = NULL){
+
+      $settings = array_merge(Array(
+         'pk'        => NULL,
+         'engine'    => 'MyISAM', 
+         'charset'   => 'utf8', 
+         'collate'   => 'utf8_bin'
+      ), $options);
 
       if (is_null($table) || !is_string($table) || (is_string($table) && $table == '')) 
          throw new Exception('Error: First parameter `table name` is invalid for method `Create`!');
@@ -103,70 +110,57 @@ class SQLDriver implements DriverInterface {
       if (!is_array($fields)) 
          throw new Exception('Error: Second parameter `table fields` is invalid for method `Create`!');
 
-      if (is_array($primaryKey)) {
-         $pks = Array();
-         foreach ($primaryKey as $key)
-            $pks[] = "`{$key}`";
-         $_pk = 'PRIMARY KEY ('.implode(',', $pks).')';
-      } else if (is_string($primaryKey) && $primaryKey != ''){
-         $_pk = "PRIMARY KEY (`{$primaryKey}`)";
-      } else {
-         $_pk = '';
-      }
+      $_pk =  !empty($settings['pk']) ? '  PRIMARY KEY (`' . (is_array($settings['pk']) ? implode('`, `', $settings['pk']) : $settings['pk']) .'`)' : '';
 
       $_fields = '';
-
       foreach ($fields as $field => $values) {
-         $_fields .= "`{$field}` ";
-         if (isset($values['type'])) $_fields .= $values['type'];
-         if (isset($values['size'])) $_fields .= '('.$values['size'].') ';
-         if (isset($values['pk']) && $values['pk']) $_fields .= 'PRIMARY KEY ';
-         if (isset($values['auto']) && $values['auto']) $_fields .= 'AUTO_INCREMENT ';
-         if (isset($values['null']) && $values['null']) $_fields .= 'NULL '; else $_fields .= 'NOT NULL ';
-         if (isset($values['deafult'])) $_fields .= 'DEFAULT '.(is_string($values['deafult']) ? '\''.$values['deafult'].'\'' : $values['deafult']).' ';
-         if (isset($values['comment'])) $_fields .= "COMMENT '{$values['comment']}' ";
-         $_fields .= ', '.PHP_EOL;
+         $_fields .= '  ' . $this->createField($field, $values) . ',' . PHP_EOL;
       }
-      if ($_pk === '')
-         $_fields = substr($_fields, 0, strlen($_fields) -2);
-      else 
-         $_fields .= $_pk;
+
+      $_fields = $_pk === '' ? rtrim($_fields, ',' . PHP_EOL) : $_fields . $_pk;
+
       $_enginne = '';
-      if (is_string($engine) && $engine != '') {
-         $_enginne = "ENGINE = {$engine} ";
-      }
+      if (is_string($settings['engine']) && !empty($settings['engine']))
+         $_enginne = " ENGINE = {$settings['engine']}";
+
       $_charset = '';
-      if (is_string($charset) && $charset != '' ){
-         $_charset = "DEFAULT CHARACTER SET = {$charset} ";
-      }
-      if (is_string($collate) && $collate != '' ){
-         $_collate = "COLLATE = {$collate} ";
-      }
-      if ($drop) {
-         $_sql = "CREATE TABLE `{$table}` (";
-      } else {
-         $_sql = "CREATE TABLE IF NOT EXISTS `{$table}` (";
-      }
-      $_sql .= PHP_EOL.$_fields.PHP_EOL.") {$_enginne}{$_charset}{$_collate};";
+      if (is_string($settings['charset']) && !empty($settings['charset']))
+         $_charset = " DEFAULT CHARACTER SET = {$settings['charset']}";
 
-      if ($drop) 
-         $this->Drop($table);
+      if (is_string($settings['collate']) && !empty($settings['collate']))
+         $_collate = " COLLATE = {$settings['collate']}";
 
-      $this->log .= $_sql . PHP_EOL;
+      $_sql = "CREATE TABLE IF NOT EXISTS `{$table}` (" . PHP_EOL . $_fields . PHP_EOL . ") {$_enginne}{$_charset}{$_collate};";
+
+      $this->log($_sql);
 
       return $_sql;
    }
 
+   private function createField($name, $settings){
+      $field = "`{$name}` ";
+
+      if (isset($settings['type'])) $field .= $settings['type'];
+      if (isset($settings['size'])) $field .= ' ('.$settings['size'].')';
+      if (isset($settings['pk']) && $settings['pk']) $field .= ' PRIMARY KEY';
+      if (isset($settings['auto']) && $settings['auto']) $field .= ' AUTO_INCREMENT';
+      if (isset($settings['null']) && $settings['null']) $field .= ' NULL '; else $field .= ' NOT NULL';
+      if (isset($settings['deafult'])) $field .= ' DEFAULT '.(is_null($settings['deafult']) ? 'NULL' : "'{$settings['deafult']}'");
+      if (isset($settings['comment'])) $field .= " COMMENT '{$settings['comment']}'";
+
+      return $field;
+   }
+
    public function setParams(PDOStatement &$stmt){
       $params = $this->getParams();
-      $this->log .=  'Setando Parâmetros: '.PHP_EOL;
+      $this->log('Setando Parâmetros: ');
       if (is_array($params) && !empty($params)){
          foreach ($params as $param => $value){
             $stmt->bindValue($param+1, $this->prepareParam($value), $this->getParamType($value));
-            $this->log .=  $param+1 . ' => ' . $this->prepareParam($value) . PHP_EOL;
+            $this->log($param+1 . ' => ' . $this->prepareParam($value));
          }
       }
-      $this->log .= PHP_EOL.'-----------------------------'.PHP_EOL.PHP_EOL;
+      $this->log(PHP_EOL.str_repeat('-', 80).PHP_EOL);
    }
 
    private function prepareParam($value){
@@ -291,6 +285,10 @@ class SQLDriver implements DriverInterface {
 
    public function clearParams(){
       $this->params = Array();
+   }
+
+   public function log($str){
+      $this->log .= $str . PHP_EOL;
    }
 
    public function flushLog(){

@@ -106,7 +106,8 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
                'type' => 'int',
                'size' => '4',
                'comment' => 'first key',
-               'auto' => true
+               'auto' => true,
+               'pk' => true
             ),
             'name' => Array(
                'type' => 'varchar',
@@ -128,12 +129,15 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
                      '   name VARCHAR(60),' . PHP_EOL .
                      '   col3 VARCHAR(60) DEFAULT NULL' . PHP_EOL .
                      ');';
-            $stmt = $con->prepare($sql);
-            $r = $stmt->execute();
+            //$stmt = $con->prepare($sql)->execute();
+            $r = $con->create('tab_teste', $fields, [
+               'engine' => 'InnoDB', 
+               'drop' => false
+            ])->execute();
          ?>
          <!--?=$con->Create('tab_teste',$fields,'id','InnoDB',false)?-->
          <pre>Not Implemented - Created manually</pre>
-         <pre><?=$sql?></pre>
+         <pre><?=$con->flushLog()?></pre>
          <pre><?=($r ? 'Success' : 'Fail')?></pre>
 
          <label>Insert</label>
@@ -165,13 +169,13 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
          <label>Tabelas</label>
          <pre><?php var_dump( $con->getTables() );?></pre>
 
-         <?php $r = $con->delete('tab_teste', Array('id'=>1)); ?>
+         <?php $r = $con->delete('tab_teste', Array('id'=>1))->execute(); ?>
          <label>Delete</label>
          <pre><?=$con->flushLog()?></pre>
          <pre><?=($r ? 'Success' : 'Fail')?></pre>
 
          <label>Update</label>
-         <?php $r = $con->update('tab_teste',Array('name' => 'Now this is the first record', 'col3' => 'First record '), Array('id'=>2)); ?>
+         <?php $r = $con->update('tab_teste',Array('name' => 'Now this is the first record', 'col3' => 'First record '), Array('id'=>2))->execute(); ?>
          <pre><?=$con->flushLog()?></pre>
          <pre><?=($r ? 'Success' : 'Fail')?></pre>
 

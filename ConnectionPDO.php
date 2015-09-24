@@ -35,7 +35,7 @@ class ConnectionPDO extends PDO {
       //echo 'Parâmetros: ';
       //var_dump($this->driver->getParams());
 
-      $this->log .= $this->driver->flushLog();
+      $this->log($this->driver->flushLog());
 
       return $this->stmt;
    }
@@ -53,7 +53,7 @@ class ConnectionPDO extends PDO {
 
       $this->driver->setParams($this->stmt);
 
-      $this->log .= $this->driver->flushLog();
+      $this->log($this->driver->flushLog());
 
       return $this->stmt;
    }
@@ -72,7 +72,7 @@ class ConnectionPDO extends PDO {
 
       $this->driver->setParams($this->stmt);
 
-      $this->log .= $this->driver->flushLog();
+      $this->log($this->driver->flushLog());
 
       return $this->stmt;
    }
@@ -85,7 +85,7 @@ class ConnectionPDO extends PDO {
 
       $this->driver->setParams($this->stmt);
 
-      $this->log .= $this->driver->flushLog();
+      $this->log($this->driver->flushLog());
 
       return $this->stmt;
    }
@@ -95,7 +95,22 @@ class ConnectionPDO extends PDO {
 
       $this->stmt = $this->prepare($this->lastSQL);
 
-      $this->log .= $this->driver->flushLog();
+      $this->log($this->driver->flushLog());
+
+      return $this->stmt;
+   }
+
+   public function create($table, $fields, $options = NULL){
+      if(!empty($options) && is_array($options) && array_key_exists('drop', $options) && $options['drop']){
+         $this->drop($table)->execute();
+         unset($options['drop']);
+      }
+
+      $this->lastSQL = $this->driver->create($table, $fields, $options);
+
+      $this->stmt = $this->prepare($this->lastSQL);
+
+      $this->log($this->driver->flushLog());
 
       return $this->stmt;
    }
@@ -119,6 +134,10 @@ class ConnectionPDO extends PDO {
 
       require_once $driver;
       $this->driver = new SQLDriver();
+   }
+
+   private function log($str){
+      $this->log .= $str . PHP_EOL;
    }
 
    public function flushLog(){
