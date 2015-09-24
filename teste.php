@@ -96,14 +96,11 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
          <h1>ConnectionPDO</h1>
 
          <label>Drop</label>
-         <?php 
-            $r = $con->drop('tab_teste');
-         ?>
+         <?php $r = $con->drop('tab_teste')->execute();?>
          <pre><?=$con->flushLog()?></pre>
          <pre><?=($r ? 'Success' : 'Fail')?></pre>
 
          <?php
-
          $fields = Array(
             'id' => Array(
                'type' => 'int',
@@ -126,12 +123,13 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
          ?>
          <label>Create</label>
          <?php
-            $sql =  'CREATE TABLE `tab_teste` (' . PHP_EOL .
+            $sql  =  'CREATE TABLE `tab_teste` (' . PHP_EOL .
                      '   id INT(4) NOT NULL AUTO_INCREMENT PRIMARY KEY,' . PHP_EOL .
                      '   name VARCHAR(60),' . PHP_EOL .
                      '   col3 VARCHAR(60) DEFAULT NULL' . PHP_EOL .
                      ');';
-            $r = $con->query($sql);
+            $stmt = $con->prepare($sql);
+            $r = $stmt->execute();
          ?>
          <!--?=$con->Create('tab_teste',$fields,'id','InnoDB',false)?-->
          <pre>Not Implemented - Created manually</pre>
@@ -143,22 +141,8 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
                $log = '';
 
 
-               echo '<pre>';
-               var_dump( $con->getTables() );
-               echo '</pre>';
-
                $r = $con->insert('tab_teste',Array('id'=>1,'name' => 'First Record', 'col3' => 'test '))->execute();
                $log .= ($r ? 'Success' : 'Fail') . PHP_EOL;
-
-               echo '<pre>';
-               echo $con->lastSQL() . PHP_EOL;
-               echo '</pre>';
-
-               echo '<pre>';
-               var_dump( $con->getTables() );
-               echo '</pre>';
-
-
 
                $r = $con->insert('tab_teste',Array('id'=>2,'name' => 'Second Record', 'col3' => 'test '))->execute();
                $log .= ($r ? 'Success' : 'Fail') . PHP_EOL;
@@ -181,7 +165,7 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
          <label>Tabelas</label>
          <pre><?php var_dump( $con->getTables() );?></pre>
 
-         <?php //$r = $con->delete('tab_teste', Array('id'=>1)); ?>
+         <?php $r = $con->delete('tab_teste', Array('id'=>1)); ?>
          <label>Delete</label>
          <pre><?=$con->flushLog()?></pre>
          <pre><?=($r ? 'Success' : 'Fail')?></pre>
@@ -203,13 +187,13 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
                'col3' => array('LIKE' => 'recor')
             );
 
-            $res = $con->select('tab_teste', $where)->execute();
-            echo '<pre>' . $con->flushLog() . PHP_EOL;
-            var_dump($res);
+            $stmt = $con->select('tab_teste', NULL);
+            $res = $stmt->execute();
+            echo '<pre>' . $con->flushLog();
             echo '</pre>';
 
             if ($res){
-               $tab = $res->fetchAll(PDO::FETCH_ASSOC);
+               $tab = $stmt->fetchAll(PDO::FETCH_ASSOC);
                if (is_array($tab)){
                   $_cols = Array();
                   foreach ($tab as $key => $row) {

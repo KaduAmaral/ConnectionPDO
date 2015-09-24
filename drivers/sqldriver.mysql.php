@@ -88,7 +88,7 @@ class SQLDriver implements DriverInterface {
    }
 
    public function drop($table){
-      $sql = "DROP TABLE IF EXISTS `{$table}`;";
+      $sql = "DROP TABLE `{$table}`;";
 
       $this->log .= $sql . PHP_EOL;
 
@@ -157,7 +157,7 @@ class SQLDriver implements DriverInterface {
       return $_sql;
    }
 
-   public function setParams(PDOStatement $stmt){
+   public function setParams(PDOStatement &$stmt){
       $params = $this->getParams();
       $this->log .=  'Setando Parâmetros: '.PHP_EOL;
       if (is_array($params) && !empty($params)){

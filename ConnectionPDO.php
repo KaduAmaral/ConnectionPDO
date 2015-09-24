@@ -27,7 +27,7 @@ class ConnectionPDO extends PDO {
    public function select($table, $where = NULL, $cols = '*', $limit = NULL) {
       $this->lastSQL =  $this->driver->select($table, $where, $cols, $limit);
 
-      $stmt = $this->prepare($this->lastSQL);
+      $this->stmt = $this->prepare($this->lastSQL);
 
       if (!is_null($where))
          $this->driver->setParams($this->stmt);
@@ -49,7 +49,7 @@ class ConnectionPDO extends PDO {
    public function insert($table, $data) {
       $this->lastSQL = $this->driver->insert($table, $data);
 
-      $stmt = $this->prepare($this->lastSQL);
+      $this->stmt = $this->prepare($this->lastSQL);
 
       $this->driver->setParams($this->stmt);
 
