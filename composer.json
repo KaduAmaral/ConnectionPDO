@@ -1,10 +1,10 @@
 {
     "name": "KaduAmaral/Base",
-    "description": "The Base MVC Framework",
+    "description": "The ConnectionPDO a connection class",
     "type": "library",
-    "keywords": ["framework","mvc","multi-language"],
-    "homepage": "https://github.com/KaduAmaral/Base",
-    "license": "Apache 2.0",
+    "keywords": ["connection","pdo"],
+    "homepage": "https://github.com/KaduAmaral/ConnectionPDO",
+    "license": "MID",
     "authors": [
         {
             "name": "Carlos Barcelos",
