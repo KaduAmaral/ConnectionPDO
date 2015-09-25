@@ -1,5 +1,5 @@
 {
-    "name": "KaduAmaral/Base",
+    "name": "KaduAmaral/ConnectionPDO",
     "description": "The ConnectionPDO a connection class",
     "type": "library",
     "keywords": ["connection","pdo"],
