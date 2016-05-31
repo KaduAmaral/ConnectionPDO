@@ -1,10 +1,10 @@
 {
     "name": "kaduamaral/connectionpdo",
-    "description": "The ConnectionPDO a connection class",
+    "description": "The ConnectionPDO is a database connection class",
     "type": "library",
     "keywords": ["connection","pdo"],
     "homepage": "https://github.com/KaduAmaral/ConnectionPDO",
-    "license": "MID",
+    "license": "MIT",
     "authors": [
         {
             "name": "Carlos Barcelos",
