@@ -4,7 +4,7 @@ ConnectionPDO é uma classe PHP para realizar a gestão do banco de dados de uma
 
 ##Version
 
-1.0.0
+1.1.0
 
 ## Methods
 
@@ -124,37 +124,66 @@ Alguns exemplos do parâmetro `$where`:
 
 ```php
 $where = 'id = 1'; 
-// Result: id = 1
+// Resultado: id = 1
 
 $where = Array('id' => 1); 
-// Result: id = 1
+// Resultado: id = 1
 
-$where = Array('id' => 1,'OR','col3' => 'test'); 
-// Result: id = 1 OR col3 = 'test'
+$where = Array('id' => 1,'$OR1'=>'OR','col3' => 'test'); 
+// Resultado: id = 1 OR col3 = 'test'
 
 $where - Array('col3' => array('LIKE' => 'recor'))
-// Result: col3 LIKE '%recor%'
+// Resultado: col3 LIKE '%recor%'
 
 $where = Array('id' => Array(1,'>>>',10, Array(3,6,8))); 
-// Result: id IN (1,2,4,5,7,9,10)
+// Resultado: id IN (1,2,4,5,7,9,10)
 
 $where = Array('id' => Array('BETWEEN' => Array(1,10)));
-// Result:  id BETWEEN 1 AND 10
+// Resultado:  id BETWEEN 1 AND 10
 
 $where = Array('id' => Array('NOT' => Array(1,2,3,12,45)));
-// Result: id NOT IN (1,2,3,12,45)
+// Resultado: id NOT IN (1,2,3,12,45)
 
 $where = Array('id' => Array('NOT' => Array(1,'>>>',10, Array(3,6,8)))); 
-// Result: id NOT IN (1,2,4,5,7,9,10)
+// Resultado: id NOT IN (1,2,4,5,7,9,10)
 
 
 $where = Array(
   'id' => array('NOT' => array(1,'>>>',6,array(3,5))),
-  'OR',
+  '$OR'=>'OR',
   'col3' => array('LIKE' => 'recor')
 );
-// Result: id NOT IN (1, 2, 4, 6) OR col3 LIKE '%recor%'
+// Resultado: id NOT IN (1, 2, 4, 6) OR col3 LIKE '%recor%'
 
+```
+
+Para inserir algo entre colunas basta passar um parâmetro iniciando com `$` seguido de qualquer _string_:
+
+```php
+
+$where = Array('id'=>3, '$a'=>'OR', 'name'=>Array('LIKE'=>'first'))
+```
+
+Também pode passar operadores como `>`, `>=`, `<=`, `<`, para coluna com valores numéricos. Basta dar um espaço do nome da coluna `'coluna >' => 'valor'`:
+
+```php
+$where = Array('id >'=>1)
+// Resultado: id > 1
+```
+
+Outro exemplo:
+
+```php
+$where = Array(
+   'id >' => 5,
+   '$1'=>'OR',
+   '$2'=>'(',
+   'col3' => array('LIKE' => 'recor'),
+   '$3'=>'OR',
+   'name' => array('LIKE' => 'Recor'),
+   '$4'=>')'
+);
+// Resultado: `id` > 5 OR  ( `col3` LIKE '%recor%' OR `name` LIKE '%Recor%' )
 ```
 
 ## Licença

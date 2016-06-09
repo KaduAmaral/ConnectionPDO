@@ -191,17 +191,31 @@ class SQLDriver implements DriverInterface {
 
       if (is_string($where) && $where != '') return $_where.$where;
 
+      $last = NULL;
+
       foreach ($where as $col => $value) {
 
-         if ($value === 'OR'){
-            $_where = substr($_where, 0, strlen($_where)-5).' OR ';
+         if (strpos($col, '$') === 0) {
+            if (!(trim($value) == '('))
+               $_where = substr($_where, 0, -1*strlen($last));
+
+            $last = (trim($value) == '(' || trim($value) == ')') ? NULL : " {$value} ";
+            $_where .= " {$value} ";
+
             continue;
          }
 
-         $_where .= "`{$col}`";
+         if (!(is_string($value) || is_numeric($value)))
+            $_where .= "`{$col}`";
 
          if (is_string($value) || is_numeric($value)){
-            $_where .= " = ?";
+            $op = '=';
+            if (strpos($col, ' ') !== FALSE && strpos($col, ' ') > 1) {
+               list($col, $op) = explode(' ', trim($col));
+            }
+            
+            $_where .= "`{$col}` {$op} ?";
+
             $this->addParam('onwhere'.$col, $value);
          } elseif (is_null($value)){
             $_where .= " IS NULL";
@@ -224,9 +238,14 @@ class SQLDriver implements DriverInterface {
                $_where .= $this->prepareInWhere($col, $value);
             }
          }
+         $last = ' AND ';
          $_where = rtrim($_where).' AND ';
       }
-      return substr($_where, 0, strlen($_where)-5);
+
+      if (!is_null($last))
+         $_where = substr($_where, 0, -1*strlen($last));
+
+      return $_where;
    }
 
    private function prepareInWhere($col, $in){
@@ -244,9 +263,6 @@ class SQLDriver implements DriverInterface {
       $where .= " IN (";
 
       $value = '';
-
-      
-
 
       $counter = 0;
       if (in_array('>>>', $in)){

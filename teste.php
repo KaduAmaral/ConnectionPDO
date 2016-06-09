@@ -181,16 +181,6 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
 
          <label>Select</label>
          <?php
-            $where = Array(
-               'id' => array('NOT' => array(1,'>>>',6,array(3,5))),
-               'OR',
-               'col3' => array('LIKE' => 'recor')
-            );
-
-            $where = Array(
-               'col3' => array('LIKE' => 'recor')
-            );
-
             $stmt = $con->select('tab_teste', NULL);
             $res = $stmt->execute();
             echo '<pre>' . $con->flushLog();
@@ -224,7 +214,53 @@ $con = new ConnectionPDO($dns, $settings['username'], $settings['password']);
                   echo '<pre>'.$con->_lastSql.'</pre>';
                }
             }
+         ?>
 
+         <label>Where</label>
+         <?php
+            $where = Array(
+               'id >' => 5,
+               '$1'=>'OR',
+               '$2'=>'(',
+               'col3' => array('LIKE' => 'recor'),
+               '$3'=>'OR',
+               'name' => array('LIKE' => 'Recor'),
+               '$4'=>')'
+            );
+
+            $stmt = $con->select('tab_teste', $where);
+            $res = $stmt->execute();
+            echo '<pre>' . $con->flushLog();
+            echo '</pre>';
+
+            if ($res){
+               $tab = $stmt->fetchAll(PDO::FETCH_ASSOC);
+               if (is_array($tab)){
+                  $_cols = Array();
+                  foreach ($tab as $key => $row) {
+                     foreach ($row as $col => $val) {
+                        if (count($_cols) != count($row)) $_cols[] = $col;
+                        else break;
+                     }
+                     break;
+                  }
+                  echo '<pre><table cellpadding="0" cellspacing="0" border="1"><thead><tr>';
+                  foreach ($_cols as $colun) {
+                     echo "<th>{$colun}</th>";
+                  }
+                  echo '</tr></thead><tbody>';
+                  foreach ($tab as $key => $row) {
+                     echo '<tr>';
+                     foreach ($row as $col => $val) {
+                        echo "<td>{$val}</td>";
+                     }
+                     echo '</tr>';
+                  }
+                  echo '</tbody></table></pre>';
+               } else {
+                  echo '<pre>'.$con->_lastSql.'</pre>';
+               }
+            }
          ?>
       </div>
    </body>
