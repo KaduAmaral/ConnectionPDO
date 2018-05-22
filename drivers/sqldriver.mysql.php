@@ -156,8 +156,9 @@ class SQLDriver implements DriverInterface {
       $this->log('Setando Parâmetros: ');
       if (is_array($params) && !empty($params)){
          foreach ($params as $param => $value){
-            $stmt->bindValue($param+1, $this->prepareParam($value), $this->getParamType($value));
-            $this->log($param+1 . ' => ' . $this->prepareParam($value));
+            $paramValue = $this->prepareParam($value);
+            $stmt->bindValue($param+1, $paramValue, $this->getParamType($value));
+            $this->log($param+1 . ' => ' . (is_null($paramValue) ? 'NULL' : $paramValue));
          }
       }
       $this->log(PHP_EOL.str_repeat('-', 80).PHP_EOL);
